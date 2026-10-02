@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   Compass,
@@ -173,9 +174,16 @@ function DesktopNav({ profile, loadingProfile, onLogout }: AppNavProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-4">
-          <Link href="/home" className="flex items-center gap-2 shrink-0" aria-label="GhumneChalo home">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm">
-              <Compass className="w-[18px] h-[18px]" />
+          <Link href="/home" className="flex items-center gap-2.5 shrink-0" aria-label="GhumneChalo home">
+            <div className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/60 p-0.5 flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
+              <Image
+                src="/logo-transparent.png"
+                alt="GhumneChalo Logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
             <span className="font-extrabold text-base tracking-tight bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent hidden sm:block">
               GhumneChalo

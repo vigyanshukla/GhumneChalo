@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getOptionalAuthenticatedUser } from '@/lib/auth-server';
@@ -32,9 +33,16 @@ export default async function Home() {
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shrink-0">
-              <Compass className="w-5 h-5" />
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-white border border-zinc-200/80 p-0.5 flex items-center justify-center shadow-md shrink-0 overflow-hidden">
+              <Image
+                src="/logo-transparent.png"
+                alt="GhumneChalo Logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
             <span className="font-extrabold text-base sm:text-xl tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent truncate">
               GhumneChalo

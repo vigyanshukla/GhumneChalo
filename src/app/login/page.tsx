@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, Eye, EyeOff, Loader2, Compass, ShieldCheck, ArrowLeft, RefreshCw } from 'lucide-react';
 
@@ -228,8 +229,17 @@ function LoginForm() {
         suppressHydrationWarning
         className="min-h-screen bg-slate-50 flex flex-col justify-center items-center"
       >
-        <div className="flex items-center gap-2">
-          <Compass className="w-8 h-8 text-emerald-600 animate-spin" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-0.5 flex items-center justify-center shadow-sm overflow-hidden">
+            <Image
+              src="/logo-transparent.png"
+              alt="GhumneChalo Logo"
+              width={36}
+              height={36}
+              className="w-full h-full object-contain"
+              priority
+            />
+          </div>
           <span className="text-xl font-bold tracking-tight text-slate-900">GhumneChalo</span>
         </div>
       </div>
@@ -242,9 +252,16 @@ function LoginForm() {
       className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8"
     >
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md">
-            <Compass className="w-6 h-6 animate-pulse" />
+        <div className="flex justify-center items-center gap-2.5">
+          <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-md overflow-hidden">
+            <Image
+              src="/logo-transparent.png"
+              alt="GhumneChalo Logo"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain"
+              priority
+            />
           </div>
           <span className="text-2xl font-bold tracking-tight text-slate-900">GhumneChalo</span>
         </div>
