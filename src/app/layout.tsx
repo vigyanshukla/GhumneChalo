@@ -96,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
     >
       <head>
         <script
@@ -125,7 +125,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="h-full min-w-[320px] flex flex-col font-sans" suppressHydrationWarning>
+      <body className="min-h-screen min-w-[320px] flex flex-col font-sans" suppressHydrationWarning>
         <ThemeProvider>
           {children}
           <PWARegistration />

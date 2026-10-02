@@ -29,9 +29,9 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200">
+    <div className="w-full flex-1 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 dark:border-zinc-800/80 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-0.5 flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
@@ -115,67 +115,67 @@ export default async function Home() {
         </div>
 
         {/* Feature Highlights Grid */}
-        <div className="mt-16 sm:mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full text-left">
+        <div className="mt-14 sm:mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full text-left">
           <Link
             href="/reminders"
-            className="group p-6 rounded-3xl bg-white dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-500/40 hover:shadow-lg dark:hover:bg-zinc-900 transition-all shadow-sm"
+            className="group p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-indigo-500/50 hover:shadow-md transition-all shadow-xs"
           >
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
               <Clock className="w-6 h-6" />
             </div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
               <span>Smart Reminders</span>
               <ArrowRight className="w-4 h-4 text-slate-400 dark:text-zinc-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" />
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
               Timely flight departures, itinerary activities, and web push notifications on all your devices.
             </p>
           </Link>
 
           <Link
             href="/achievements"
-            className="group p-6 rounded-3xl bg-white dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 hover:border-amber-500/40 hover:shadow-lg dark:hover:bg-zinc-900 transition-all shadow-sm"
+            className="group p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-amber-500/50 hover:shadow-md transition-all shadow-xs"
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
               <Trophy className="w-6 h-6" />
             </div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
               <span>Badges & Score</span>
               <ArrowRight className="w-4 h-4 text-slate-400 dark:text-zinc-600 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
               Unlock milestone badges, track destinations visited, and level up your wanderer profile.
             </p>
           </Link>
 
           <Link
             href="/emergency"
-            className="group p-6 rounded-3xl bg-white dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 hover:border-rose-500/40 hover:shadow-lg dark:hover:bg-zinc-900 transition-all shadow-sm"
+            className="group p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-rose-500/50 hover:shadow-md transition-all shadow-xs"
           >
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
               <span>Emergency SOS</span>
               <ArrowRight className="w-4 h-4 text-slate-400 dark:text-zinc-600 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors" />
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
               Instant 112 dialing, nearby hospital & police locator, plus offline emergency contacts.
             </p>
           </Link>
 
           <Link
             href="/notifications"
-            className="group p-6 rounded-3xl bg-white dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 hover:border-blue-500/40 hover:shadow-lg dark:hover:bg-zinc-900 transition-all shadow-sm"
+            className="group p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-blue-500/50 hover:shadow-md transition-all shadow-xs"
           >
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5 flex items-center justify-between">
               <span>Alerts Center</span>
               <ArrowRight className="w-4 h-4 text-slate-400 dark:text-zinc-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
               Unified in-app inbox and device push preferences with granular category toggles.
             </p>
           </Link>
