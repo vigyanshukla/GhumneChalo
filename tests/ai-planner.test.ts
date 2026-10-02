@@ -333,6 +333,52 @@ describe('Phase 8 — Gemini AI Travel Planner', () => {
       expect(parsed.success).toBe(false);
     });
 
+    it('TC-8.12b: Non-standard LLM categories, priorities, and times are normalized gracefully', () => {
+      const dayWithLlmVariations = {
+        dayNumber: 1,
+        date: '2026-11-10',
+        title: 'Arrival & Adventure',
+        activities: [
+          {
+            name: 'Sunset Beach Walk',
+            description: 'Relax on the sands',
+            category: 'nature', // outside enum, should normalize to 'relaxation'
+            startTime: '9:30', // single digit hour, should normalize to '09:30'
+            endTime: '11:00 AM',
+            durationMinutes: 90,
+            priority: 'must-see', // hyphenated, should normalize to 'must_see'
+            reasoning: 'Scenic highlight',
+          },
+          {
+            name: 'Local Street Food Tour',
+            description: 'Taste authentic dishes',
+            category: 'Dining', // uppercase synonym, should normalize to 'food'
+            startTime: '13:00',
+            endTime: '15:00',
+            durationMinutes: 120,
+            priority: 'recommended',
+            reasoning: 'Culinary delight',
+          },
+        ],
+        meals: [
+          {
+            type: 'brunch', // should normalize to 'lunch'
+            suggestion: 'Cafe brunch',
+          },
+        ],
+      };
+
+      const result = generatedDayPlanSchema.safeParse(dayWithLlmVariations);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.activities[0].category).toBe('relaxation');
+        expect(result.data.activities[0].startTime).toBe('09:30');
+        expect(result.data.activities[0].priority).toBe('must_see');
+        expect(result.data.activities[1].category).toBe('food');
+        expect(result.data.meals?.[0].type).toBe('lunch');
+      }
+    });
+
     it('TC-8.13: Invalid generated date is rejected', () => {
       const invalidDay = {
         dayNumber: 1,

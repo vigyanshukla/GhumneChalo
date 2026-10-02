@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-export const activityCategorySchema = z.enum([
+import { ActivityCategory, ActivityPriority, TravelStyle } from './types';
+
+const VALID_CATEGORIES = [
   'sightseeing',
   'food',
   'activity',
@@ -8,9 +10,79 @@ export const activityCategorySchema = z.enum([
   'travel',
   'culture',
   'shopping',
-]);
+] as const;
 
-export const activityPrioritySchema = z.enum(['must_see', 'recommended', 'optional']);
+export function normalizeActivityCategory(raw: unknown): ActivityCategory {
+  if (typeof raw !== 'string') return 'sightseeing';
+  const val = raw.trim().toLowerCase();
+  if ((VALID_CATEGORIES as readonly string[]).includes(val)) {
+    return val as ActivityCategory;
+  }
+  if (/food|dining|restaurant|meal|lunch|dinner|breakfast|culinary|cafe|bar|snack|drink|tasting/.test(val)) {
+    return 'food';
+  }
+  if (/culture|cultural|history|historic|historical|museum|heritage|temple|monument|art|architecture|church|mosque|palace/.test(val)) {
+    return 'culture';
+  }
+  if (/relax|relaxation|leisure|spa|beach|wellness|park|chill|resort|nature|garden|lake/.test(val)) {
+    return 'relaxation';
+  }
+  if (/shop|shopping|market|bazaar|souvenir|mall|store|boutique/.test(val)) {
+    return 'shopping';
+  }
+  if (/travel|transport|transportation|transit|commute|flight|train|bus|ferry|transfer|drive|car/.test(val)) {
+    return 'travel';
+  }
+  if (/activity|adventure|sport|hike|hiking|trek|trekking|entertainment|nightlife|outdoor|ride|safari|amusement/.test(val)) {
+    return 'activity';
+  }
+  return 'sightseeing';
+}
+
+export const activityCategorySchema = z.preprocess(
+  normalizeActivityCategory,
+  z.enum(VALID_CATEGORIES)
+);
+
+const VALID_PRIORITIES = ['must_see', 'recommended', 'optional'] as const;
+
+export function normalizeActivityPriority(raw: unknown): ActivityPriority {
+  if (typeof raw !== 'string') return 'recommended';
+  const val = raw.trim().toLowerCase().replace(/-/g, '_').replace(/\s+/g, '_');
+  if ((VALID_PRIORITIES as readonly string[]).includes(val)) {
+    return val as ActivityPriority;
+  }
+  if (/must|high|essential|top|critical/.test(val)) return 'must_see';
+  if (/opt|low|extra|bonus/.test(val)) return 'optional';
+  return 'recommended';
+}
+
+export const activityPrioritySchema = z.preprocess(
+  normalizeActivityPriority,
+  z.enum(VALID_PRIORITIES)
+);
+
+function normalizeTimeString(raw: unknown, defaultTime: string): string {
+  if (typeof raw !== 'string') return defaultTime;
+  const trimmed = raw.trim();
+  if (/^([01]\d|2[0-3]):([0-5]\d)$/.test(trimmed)) {
+    return trimmed;
+  }
+  const singleDigitMatch = trimmed.match(/^(\d):([0-5]\d)$/);
+  if (singleDigitMatch) {
+    return `0${singleDigitMatch[1]}:${singleDigitMatch[2]}`;
+  }
+  const ampmMatch = trimmed.match(/^(\d{1,2}):([0-5]\d)\s*(AM|PM)?$/i);
+  if (ampmMatch) {
+    let hours = parseInt(ampmMatch[1], 10);
+    const minutes = ampmMatch[2];
+    const ampm = ampmMatch[3]?.toUpperCase();
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+    return `${hours.toString().padStart(2, '0')}:${minutes}`;
+  }
+  return defaultTime;
+}
 
 export const travelStyleSchema = z.enum(['relaxed', 'moderate', 'fast-paced', 'luxury', 'budget']);
 
@@ -28,9 +100,15 @@ export const generatedActivitySchema = z.object({
   name: z.string().trim().min(1, 'Activity name is required').max(150),
   description: z.string().trim().default(''),
   category: activityCategorySchema.default('sightseeing'),
-  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).default('10:00'),
-  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).default('12:00'),
-  durationMinutes: z.number().int().min(15).max(720).default(120),
+  startTime: z.preprocess(
+    (val) => normalizeTimeString(val, '10:00'),
+    z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  ).default('10:00'),
+  endTime: z.preprocess(
+    (val) => normalizeTimeString(val, '12:00'),
+    z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  ).default('12:00'),
+  durationMinutes: z.coerce.number().int().min(15).max(720).default(120),
   estimatedCost: z.number().min(0).max(1000000).optional().nullable().default(null),
   priority: activityPrioritySchema.default('recommended'),
   reasoning: z.string().trim().default('Curated highlight'),
@@ -41,7 +119,14 @@ export const generatedActivitySchema = z.object({
 });
 
 export const generatedMealSchema = z.object({
-  type: z.enum(['breakfast', 'lunch', 'dinner']),
+  type: z.preprocess((val) => {
+    if (typeof val !== 'string') return 'dinner';
+    const lower = val.toLowerCase().trim();
+    if (lower === 'breakfast' || lower === 'lunch' || lower === 'dinner') return lower;
+    if (/morn|break/i.test(lower)) return 'breakfast';
+    if (/noon|mid|lunch|brunch/i.test(lower)) return 'lunch';
+    return 'dinner';
+  }, z.enum(['breakfast', 'lunch', 'dinner'])).default('dinner'),
   suggestion: z.string().trim().min(1).max(200),
   estimatedCost: z.number().min(0).max(100000).optional().nullable(),
 });
