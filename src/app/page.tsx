@@ -5,7 +5,6 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getOptionalAuthenticatedUser } from '@/lib/auth-server';
 import {
-  Compass,
   Luggage,
   Clock,
   ShieldAlert,

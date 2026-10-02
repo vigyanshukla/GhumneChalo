@@ -62,7 +62,8 @@ export function RouteCard({
 }: RouteCardProps) {
   // Origin Search / Geolocation State
   const [isEditingOrigin, setIsEditingOrigin] = useState(false);
-  const [originQuery, setOriginQuery] = useState(origin?.name || '');
+  const [customOriginQuery, setCustomOriginQuery] = useState<string | null>(null);
+  const originQuery = customOriginQuery !== null ? customOriginQuery : (origin?.name || '');
   const [suggestions, setSuggestions] = useState<NormalizedPlace[]>([]);
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
   const [isLocatingGps, setIsLocatingGps] = useState(false);
@@ -71,13 +72,6 @@ export function RouteCard({
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  // Keep origin query in sync with origin prop when not editing
-  useEffect(() => {
-    if (!isEditingOrigin) {
-      setOriginQuery(origin?.name || '');
-    }
-  }, [origin?.name, isEditingOrigin]);
 
   // Focus input when entering edit mode
   useEffect(() => {
@@ -91,6 +85,7 @@ export function RouteCard({
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsEditingOrigin(false);
+        setCustomOriginQuery(null);
         setSuggestions([]);
       }
     }
@@ -112,6 +107,7 @@ export function RouteCard({
       (position) => {
         setIsLocatingGps(false);
         setIsEditingOrigin(false);
+        setCustomOriginQuery(null);
         const newOrigin: RouteCoordinate = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -137,7 +133,7 @@ export function RouteCard({
 
   // Debounced Place Search
   const handleSearchChange = (q: string) => {
-    setOriginQuery(q);
+    setCustomOriginQuery(q);
     setLocationError(null);
 
     if (searchDebounceRef.current) {
@@ -178,6 +174,7 @@ export function RouteCard({
     };
     onChangeOrigin?.(newOrigin);
     setIsEditingOrigin(false);
+    setCustomOriginQuery(null);
     setSuggestions([]);
   };
 
@@ -306,7 +303,10 @@ export function RouteCard({
                 {!isEditingOrigin ? (
                   <div className="flex items-center justify-between gap-2 group">
                     <div
-                      onClick={() => setIsEditingOrigin(true)}
+                      onClick={() => {
+                        setIsEditingOrigin(true);
+                        setCustomOriginQuery(origin.name || '');
+                      }}
                       className="flex items-center gap-2 text-xs flex-1 min-w-0 cursor-pointer p-1.5 -ml-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors"
                       title="Click to change starting location"
                     >
