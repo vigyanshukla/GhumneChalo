@@ -89,3 +89,9 @@ Thumbs.db
 *~
 *.tmp
 *.temp
+
+# Phase Documentation, Audits & Implementation Reports (Do not push to GitHub)
+PHASE*
+docs/implementation/PHASE*
+VERCEL-*.md
+
