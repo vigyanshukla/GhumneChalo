@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ActivityCategory, ActivityPriority, TravelStyle } from './types';
+import { ActivityCategory, ActivityPriority } from './types';
 
 const VALID_CATEGORIES = [
   'sightseeing',

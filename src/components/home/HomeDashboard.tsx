@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Compass,
@@ -78,6 +78,10 @@ export function HomeDashboard({ initialUser }: HomeDashboardProps) {
   const [greeting] = useState<string>(getInitialGreeting);
 
   const [reloadTrigger, setReloadTrigger] = useState(0);
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // Fetch all authenticated dashboard data inside useEffect
   useEffect(() => {
@@ -99,8 +103,8 @@ export function HomeDashboard({ initialUser }: HomeDashboardProps) {
             undefined,
             { cacheKey: CACHE_KEYS.NOTIFICATIONS_UNREAD, ttlMs: 60 * 1000 }
           ),
-          user
-            ? Promise.resolve({ success: true, data: user })
+          userRef.current
+            ? Promise.resolve({ success: true, data: userRef.current })
             : cachedFetch<{ success: boolean; data: { id: string; email: string; name: string | null } }>(
                 '/api/profile',
                 undefined,

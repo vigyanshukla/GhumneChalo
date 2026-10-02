@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 /**
@@ -16,15 +16,17 @@ export function RouteProgressBar() {
 
   // When pathname or searchParams change, mark navigation as complete
   useEffect(() => {
-    if (isNavigating) {
+    if (!isNavigating) return;
+    const finishTimer = setTimeout(() => {
       setIsFinishing(true);
-      const timer = setTimeout(() => {
+      const closeTimer = setTimeout(() => {
         setIsNavigating(false);
         setIsFinishing(false);
       }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [pathname, searchParams]);
+      return () => clearTimeout(closeTimer);
+    }, 0);
+    return () => clearTimeout(finishTimer);
+  }, [pathname, searchParams, isNavigating]);
 
   // Intercept click on internal links
   useEffect(() => {

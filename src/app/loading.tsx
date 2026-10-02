@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Compass, Sparkles, MapPin, Plane, Luggage } from 'lucide-react';
+import { Compass, Sparkles, MapPin, Plane } from 'lucide-react';
 
 const LOADING_MESSAGES = [
   'Mapping your scenic routes...',

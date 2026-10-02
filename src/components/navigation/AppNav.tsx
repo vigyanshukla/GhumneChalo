@@ -25,10 +25,8 @@ import {
   CACHE_KEYS,
   getStoredItem,
   cachedFetch,
-  clearAllStoredCache,
   prefetchCoreData,
 } from '@/lib/cache/client-cache';
-import { clearUserOfflineStorage } from '@/lib/offline/offline-storage';
 import { performLogout } from '@/lib/auth-client';
 
 interface UserProfile {
@@ -245,12 +243,13 @@ function DesktopNav({ profile, loadingProfile, onLogout }: AppNavProps) {
 
 function MobileBottomNav() {
   const pathname = usePathname();
+  const [prevPath, setPrevPath] = useState(pathname);
   const [optimisticPath, setOptimisticPath] = useState<string | null>(null);
 
-  // Clear optimistic path once real route arrives
-  useEffect(() => {
+  if (pathname !== prevPath) {
+    setPrevPath(pathname);
     setOptimisticPath(null);
-  }, [pathname]);
+  }
 
   const currentPath = optimisticPath || pathname;
 

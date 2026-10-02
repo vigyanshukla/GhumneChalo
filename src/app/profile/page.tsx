@@ -15,7 +15,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { AppNav } from '@/components/navigation/AppNav';
-import { CACHE_KEYS, getStoredItem, setStoredItem, cachedFetch, clearAllStoredCache } from '@/lib/cache/client-cache';
+import { CACHE_KEYS, getStoredItem, setStoredItem, cachedFetch } from '@/lib/cache/client-cache';
 import { performLogout } from '@/lib/auth-client';
 
 interface UserProfile {

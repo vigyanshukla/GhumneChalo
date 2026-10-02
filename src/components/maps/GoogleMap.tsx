@@ -57,6 +57,9 @@ export function GoogleMap({
     setRetryCount((prev) => prev + 1);
   }, []);
 
+  const centerLat = center.lat;
+  const centerLng = center.lng;
+
   // Map Initialization Effect
   useEffect(() => {
     let active = true;
@@ -68,7 +71,7 @@ export function GoogleMap({
         // Prevent duplicate map initialization
         if (!mapInstanceRef.current) {
           const mapOptions: google.maps.MapOptions = {
-            center,
+            center: { lat: centerLat, lng: centerLng },
             zoom,
             disableDefaultUI: true, // We use custom accessible controls
             zoomControl: false,
@@ -95,7 +98,7 @@ export function GoogleMap({
           onMapLoad?.(newMap);
         } else {
           // Update existing map center/zoom if changed
-          mapInstanceRef.current.setCenter(center);
+          mapInstanceRef.current.setCenter({ lat: centerLat, lng: centerLng });
           mapInstanceRef.current.setZoom(zoom);
         }
 
@@ -126,7 +129,7 @@ export function GoogleMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [center.lat, center.lng, zoom, onMapLoad, retryCount]);
+  }, [centerLat, centerLng, zoom, onMapLoad, retryCount]);
 
   // Responsive resize handler with requestAnimationFrame throttling
   useEffect(() => {

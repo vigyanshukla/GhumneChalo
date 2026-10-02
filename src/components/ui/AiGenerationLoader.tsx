@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Brain, Compass, CheckCircle2, Wand2 } from 'lucide-react';
+import { Sparkles, Brain, Compass, Wand2 } from 'lucide-react';
 
 export interface AiGenerationLoaderProps {
   title?: string;
