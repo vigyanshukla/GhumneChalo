@@ -1,0 +1,57 @@
+{
+  "name": "GhumneChalo — Smart Travel & Itinerary Platform",
+  "short_name": "GhumneChalo",
+  "description": "Smart travel planning, itinerary management, real-time reminders, offline access, emergency assistance, and local discovery.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["travel", "navigation", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/badge-72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Trips",
+      "short_name": "Trips",
+      "url": "/trips",
+      "description": "View and manage your travel itineraries"
+    },
+    {
+      "name": "Emergency Assistance",
+      "short_name": "Emergency",
+      "url": "/emergency",
+      "description": "Fast access to 112, emergency contacts, and nearby facilities"
+    },
+    {
+      "name": "Travel Reminders",
+      "short_name": "Reminders",
+      "url": "/reminders",
+      "description": "Check upcoming transit, hotel, and activity reminders"
+    }
+  ]
+}

@@ -1,6 +1,9 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ============================================================
+# GhumneChalo — Production .gitignore
+# Next.js 16 App Router + TypeScript + Prisma + Vercel + PWA
+# ============================================================
 
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -10,32 +13,79 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# Next.js Build Output & Cache
 /.next/
 /out/
-
-# production
 /build
+/dist
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
+# Environment Variables & Secrets (CRITICAL: NEVER COMMIT)
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+!.env.example
 *.pem
+*.key
+*.cert
+*.crt
+*service-account*.json
+service.json
+*.key.json
 
-# debug
+# Local Databases & Embedded Postgres
+/.pgdata/
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Logs & Debug Output
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
+# Testing & Coverage
+/coverage/
+/.nyc_output/
+acceptance-results.json
+scratch-page.html
+scratch/
+test_*.png
+*.screenshot.png
+/p14b_screenshots/
 
-# vercel
+# Vercel Deployment Cache
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Editor & IDE Directories
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# Temporary files & swap
+*~
+*.tmp
+*.temp
