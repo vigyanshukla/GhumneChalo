@@ -220,7 +220,7 @@ export function EmergencyDashboard() {
   return (
     <div className="space-y-6" data-testid="emergency-dashboard">
       {/* Sticky Fast-Dial Emergency Action Banner */}
-      <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-rose-200 dark:border-rose-950/80 shadow-sm">
+      <div className="sticky top-16 z-30 w-full px-4 py-3 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl border border-rose-200 dark:border-rose-950/80 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="flex h-3 w-3 relative">

@@ -513,7 +513,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
             </div>
 
             {/* Action Entry Points */}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 max-w-full">
               {/* AI Planner Entry Point (Phase 8) */}
               <button
                 type="button"

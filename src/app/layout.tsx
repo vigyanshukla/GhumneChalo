@@ -127,7 +127,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="min-h-screen min-w-[320px] flex flex-col font-sans" suppressHydrationWarning>
+      <body className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col font-sans" suppressHydrationWarning>
         <Suspense fallback={null}>
           <RouteProgressBar />
         </Suspense>

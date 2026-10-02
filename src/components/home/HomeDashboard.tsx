@@ -198,7 +198,7 @@ export function HomeDashboard({ initialUser }: HomeDashboardProps) {
   const displayName = user?.name?.trim() || user?.email?.split('@')[0] || 'Traveler';
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 flex flex-col min-w-[320px]">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 flex flex-col w-full max-w-full overflow-x-clip">
       <AppNav />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 pb-24 md:pb-8">

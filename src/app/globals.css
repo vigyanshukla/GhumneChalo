@@ -14,19 +14,33 @@
   color-scheme: dark;
 }
 
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
 html {
   min-height: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100vh;
-  min-width: 320px;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+  position: relative;
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent media / SVG blowout on small phone screens */
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
 }
 
 /* WCAG 2.1 AA Focus Visibility */

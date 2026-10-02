@@ -105,7 +105,7 @@ export function PWARegistration() {
     <div
       role="banner"
       aria-label="Install App"
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-50 p-4 rounded-2xl bg-neutral-900/95 border border-amber-500/30 text-white backdrop-blur-xl shadow-2xl shadow-amber-500/10 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 max-w-[calc(100vw-2rem)] z-50 p-4 rounded-2xl bg-neutral-900/95 border border-amber-500/30 text-white backdrop-blur-xl shadow-2xl shadow-amber-500/10 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
