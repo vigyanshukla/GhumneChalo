@@ -31,6 +31,11 @@ const AUTH_PAGES = ['/login', '/register', '/forgot-password', '/reset-password'
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Public VAPID key is required for Web Push subscription handshake
+  if (pathname === '/api/notifications/push/vapid-public-key') {
+    return NextResponse.next();
+  }
+
   // 1. Extract session token from cookie or Authorization header
   const token =
     request.cookies.get(SESSION_COOKIE_NAME)?.value ||

@@ -1,6 +1,7 @@
 {
   "name": "GhumneChalo — Smart Travel & Itinerary Platform",
   "short_name": "GhumneChalo",
+  "gcm_sender_id": "103953800507",
   "description": "Smart travel planning, itinerary management, real-time reminders, offline access, emergency assistance, and local discovery.",
   "start_url": "/",
   "scope": "/",

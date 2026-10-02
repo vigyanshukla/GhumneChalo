@@ -41,16 +41,15 @@ export function useNotificationPermission(): NotificationPermission {
   );
 }
 
-function urlB64ToUint8Array(base64String: string): BufferSource {
+function urlB64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
-  const buffer = new ArrayBuffer(rawData.length);
-  const outputArray = new Uint8Array(buffer);
+  const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
-  return buffer;
+  return outputArray;
 }
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -79,19 +78,39 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
 
     const reg = await navigator.serviceWorker.ready;
 
-    // Fetch VAPID public key
-    const keyRes = await fetch('/api/notifications/push/vapid-public-key', {
-      credentials: 'include',
-    });
-    const keyData = await keyRes.json();
-    const publicKey = keyData.data?.publicKey;
+    // Fetch VAPID public key with fallback to client environment variable
+    let publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+    try {
+      const keyRes = await fetch('/api/notifications/push/vapid-public-key', {
+        credentials: 'include',
+      });
+      if (keyRes.ok) {
+        const keyData = await keyRes.json();
+        if (keyData.data?.publicKey) {
+          publicKey = keyData.data.publicKey;
+        }
+      }
+    } catch {
+      // Use fallback
+    }
 
     if (!publicKey) {
-      return { success: false, error: 'Failed to retrieve VAPID public key.' };
+      publicKey = 'BI_4kphhlncigntNcpkf_33-JK1PnhLHgS26YRFfi4n5Iwy89BvaZnklS7mHXDEbwqv-NqQd7OoruMyQMEfKU0M';
     }
 
     const convertedKey = urlB64ToUint8Array(publicKey);
-    const subscription = await reg.pushManager.subscribe({
+
+    // If an existing subscription exists with potentially stale VAPID key, renew it cleanly
+    let subscription = await reg.pushManager.getSubscription();
+    if (subscription) {
+      try {
+        await subscription.unsubscribe();
+      } catch {
+        // Continue to fresh subscribe
+      }
+    }
+
+    subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: convertedKey,
     });
