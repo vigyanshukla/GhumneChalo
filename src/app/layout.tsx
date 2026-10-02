@@ -29,6 +29,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://ghumne-chalo.vercel.app'),
   title: {
     default: "GhumneChalo - Smart Travel & Itinerary Platform",
     template: "%s | GhumneChalo",
@@ -36,6 +37,17 @@ export const metadata: Metadata = {
   description:
     "Smart travel planning, itinerary management, real-time reminders, emergency assistance, and local discovery.",
   applicationName: "GhumneChalo",
+  keywords: [
+    "travel planner",
+    "itinerary management",
+    "smart wander",
+    "GhumneChalo",
+    "India travel",
+    "trip routes",
+    "travel reminders",
+    "emergency assistance",
+  ],
+  authors: [{ name: "GhumneChalo Team" }],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -48,6 +60,34 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://ghumne-chalo.vercel.app",
+    siteName: "GhumneChalo",
+    title: "GhumneChalo - Smart Travel & Itinerary Platform",
+    description:
+      "Plan multi-day journeys, explore hidden gems, set real-time travel alerts, track milestones, and access emergency helplines.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "GhumneChalo - Smart Wander & Travel Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GhumneChalo - Smart Travel & Itinerary Platform",
+    description:
+      "Plan multi-day journeys, explore hidden gems, set real-time travel alerts, track milestones, and access emergency helplines.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
