@@ -26,49 +26,29 @@ export function MapMarker({
 }: MapMarkerProps) {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const clickListenerRef = useRef<google.maps.MapsEventListener | null>(null);
+  const onClickRef = useRef(onClick);
+  onClickRef.current = onClick;
 
+  // Initialize marker on mount / when map becomes available
   useEffect(() => {
     if (!map) return;
 
     if (!markerRef.current) {
-      markerRef.current = new google.maps.Marker({
+      const marker = new google.maps.Marker({
         position,
         map,
         title,
         icon,
         zIndex,
       });
-    } else {
-      markerRef.current.setPosition(position);
-      markerRef.current.setTitle(title || '');
-      if (icon) markerRef.current.setIcon(icon);
-      if (typeof zIndex === 'number') markerRef.current.setZIndex(zIndex);
-      markerRef.current.setMap(map);
+      markerRef.current = marker;
+
+      // Attach click listener once delegation
+      clickListenerRef.current = marker.addListener('click', () => {
+        onClickRef.current?.();
+      });
     }
 
-    // Attach click listener
-    if (clickListenerRef.current) {
-      google.maps.event.removeListener(clickListenerRef.current);
-      clickListenerRef.current = null;
-    }
-
-    if (onClick && markerRef.current) {
-      clickListenerRef.current = markerRef.current.addListener('click', onClick);
-    }
-
-    return () => {
-      if (clickListenerRef.current) {
-        google.maps.event.removeListener(clickListenerRef.current);
-        clickListenerRef.current = null;
-      }
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
-      }
-    };
-  }, [map, position, title, icon, onClick, zIndex]);
-
-  // Clean unmount
-  useEffect(() => {
     return () => {
       if (clickListenerRef.current) {
         google.maps.event.removeListener(clickListenerRef.current);
@@ -79,7 +59,16 @@ export function MapMarker({
         markerRef.current = null;
       }
     };
-  }, []);
+  }, [map]);
+
+  // Update marker position and attributes in-place without re-creating
+  useEffect(() => {
+    if (!markerRef.current) return;
+    markerRef.current.setPosition(position);
+    markerRef.current.setTitle(title || '');
+    if (icon) markerRef.current.setIcon(icon);
+    if (typeof zIndex === 'number') markerRef.current.setZIndex(zIndex);
+  }, [position.lat, position.lng, title, icon, zIndex]);
 
   return null;
 }

@@ -126,21 +126,26 @@ export function GoogleMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [center, zoom, onMapLoad, retryCount]);
+  }, [center.lat, center.lng, zoom, onMapLoad, retryCount]);
 
-  // Responsive resize handler
+  // Responsive resize handler with requestAnimationFrame throttling
   useEffect(() => {
     if (!containerRef.current || !map) return;
 
+    let frameId: number | null = null;
     const resizeObserver = new ResizeObserver(() => {
-      if (mapInstanceRef.current && typeof google !== 'undefined' && google?.maps?.event) {
-        google.maps.event.trigger(mapInstanceRef.current, 'resize');
-      }
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        if (mapInstanceRef.current && typeof google !== 'undefined' && google?.maps?.event) {
+          google.maps.event.trigger(mapInstanceRef.current, 'resize');
+        }
+      });
     });
 
     resizeObserver.observe(containerRef.current);
 
     return () => {
+      if (frameId) cancelAnimationFrame(frameId);
       resizeObserver.disconnect();
     };
   }, [map]);

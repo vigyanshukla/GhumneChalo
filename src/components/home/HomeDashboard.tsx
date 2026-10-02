@@ -123,12 +123,22 @@ export function HomeDashboard({ initialUser }: HomeDashboardProps) {
           setUnreadCount(unreadRes.value.data?.unreadCount || 0);
         }
         if (profileRes.status === 'fulfilled' && profileRes.value?.success && profileRes.value.data) {
-          setUser((prev) => ({
-            ...prev,
-            id: profileRes.value.data.id || prev?.id || '',
-            email: profileRes.value.data.email || prev?.email || '',
-            name: profileRes.value.data.name ?? prev?.name ?? null,
-          }));
+          const profileData = profileRes.value.data;
+          setUser((prev) => {
+            if (
+              prev?.id === profileData.id &&
+              prev?.email === profileData.email &&
+              prev?.name === profileData.name
+            ) {
+              return prev;
+            }
+            return {
+              ...prev,
+              id: profileData.id || prev?.id || '',
+              email: profileData.email || prev?.email || '',
+              name: profileData.name ?? prev?.name ?? null,
+            };
+          });
         }
       } catch {
         if (!ignore) {
@@ -145,7 +155,7 @@ export function HomeDashboard({ initialUser }: HomeDashboardProps) {
     return () => {
       ignore = true;
     };
-  }, [user, reloadTrigger]);
+  }, [reloadTrigger]);
 
   // Compute upcoming trip
   const now = new Date();

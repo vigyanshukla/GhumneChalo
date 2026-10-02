@@ -395,8 +395,14 @@ export function AppNav() {
       .catch(() => {})
       .finally(() => setLoadingProfile(false));
 
-    // 2. Prefetch all core user data in parallel once (trips, notifications) into localStorage
-    prefetchCoreData();
+    // 2. Prefetch core user data during idle time to prevent thread congestion
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => prefetchCoreData(), { timeout: 3000 });
+      } else {
+        setTimeout(prefetchCoreData, 2000);
+      }
+    }
   }, []);
 
   const handleLogout = async () => {
