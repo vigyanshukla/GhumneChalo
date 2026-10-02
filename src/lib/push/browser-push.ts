@@ -80,7 +80,9 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
     const reg = await navigator.serviceWorker.ready;
 
     // Fetch VAPID public key
-    const keyRes = await fetch('/api/notifications/push/vapid-public-key');
+    const keyRes = await fetch('/api/notifications/push/vapid-public-key', {
+      credentials: 'include',
+    });
     const keyData = await keyRes.json();
     const publicKey = keyData.data?.publicKey;
 
@@ -95,7 +97,23 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
     });
 
     const subJson = subscription.toJSON();
-    const endpoint = subJson.endpoint || '';
+    const endpoint = subJson.endpoint || subscription.endpoint || '';
+
+    // Extract keys with cross-browser fallback
+    let p256dh = subJson.keys?.p256dh || '';
+    let auth = subJson.keys?.auth || '';
+    if (!p256dh && typeof subscription.getKey === 'function') {
+      const rawKey = subscription.getKey('p256dh');
+      if (rawKey) {
+        p256dh = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(rawKey))));
+      }
+    }
+    if (!auth && typeof subscription.getKey === 'function') {
+      const rawAuth = subscription.getKey('auth');
+      if (rawAuth) {
+        auth = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(rawAuth))));
+      }
+    }
 
     // Extract FCM registration token if from FCM
     let fcmToken: string | null = null;
@@ -103,20 +121,24 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
       fcmToken = endpoint.split('fcm.googleapis.com/fcm/send/')[1] || null;
     }
 
-    // Save to Supabase
+    // Save to Supabase with credentials for mobile cross-origin/PWA cookies
     const saveRes = await fetch('/api/notifications/push/subscribe', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         endpoint,
-        keys: subJson.keys,
+        keys: { p256dh, auth },
+        p256dh,
+        auth,
         fcmToken,
         userAgent: navigator.userAgent,
       }),
     });
 
     if (!saveRes.ok) {
-      throw new Error('Failed to save push subscription in Supabase.');
+      const errData = await saveRes.json().catch(() => null);
+      throw new Error(errData?.error?.message || errData?.message || 'Failed to save push subscription in Supabase.');
     }
 
     const savedData = await saveRes.json();
@@ -139,6 +161,7 @@ export async function unsubscribeFromPush(): Promise<{ success: boolean; error?:
       await subscription.unsubscribe();
       await fetch('/api/notifications/push/unsubscribe', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ endpoint }),
       });
