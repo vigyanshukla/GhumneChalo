@@ -101,10 +101,10 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
     const convertedKey = urlB64ToUint8Array(publicKey);
 
     // If an existing subscription exists with potentially stale VAPID key, renew it cleanly
-    let subscription = await reg.pushManager.getSubscription();
-    if (subscription) {
+    const existingSub = await reg.pushManager.getSubscription();
+    if (existingSub) {
       try {
-        await subscription.unsubscribe();
+        await existingSub.unsubscribe();
       } catch {
         // Continue to fresh subscribe
       }
@@ -114,7 +114,7 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
     try {
       subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: convertedKey,
+        applicationServerKey: convertedKey as unknown as BufferSource,
       });
     } catch (primaryErr: unknown) {
       console.warn('Initial pushManager.subscribe failed, updating SW and retrying:', primaryErr);
@@ -126,7 +126,7 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
         }
         subscription = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: convertedKey,
+          applicationServerKey: convertedKey as unknown as BufferSource,
         });
       } catch (retryErr: unknown) {
         const rawMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
