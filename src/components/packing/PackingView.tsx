@@ -33,6 +33,7 @@ import {
   PackingListResponse,
 } from '@/lib/packing/types';
 import { AddItemModal } from './AddItemModal';
+import { AiGenerationLoader } from '@/components/ui/AiGenerationLoader';
 
 interface PackingViewProps {
   tripId: string;
@@ -550,8 +551,25 @@ export function PackingView({
           </div>
         )}
 
+        {/* AI Generating State */}
+        {isGenerating && (
+          <div className="rounded-3xl border border-violet-200/80 dark:border-violet-900/60 bg-white/95 dark:bg-zinc-900/95 shadow-xl backdrop-blur-md overflow-hidden animate-in fade-in zoom-in-95">
+            <AiGenerationLoader
+              title={`Generating Smart Packing Checklist for ${destinationName || 'Your Journey'}`}
+              subtitle="Analyzing local weather forecasts, precipitation risks, and trip duration..."
+              stages={[
+                'Checking local temperature & rain forecasts...',
+                'Selecting weather-ready apparel & footwear...',
+                'Organizing travel documents, tech & chargers...',
+                'Adding toiletries, medication & health kits...',
+                'Finalizing your customized checklist...',
+              ]}
+            />
+          </div>
+        )}
+
         {/* Empty State */}
-        {!isLoading && totalItems === 0 && (
+        {!isLoading && !isGenerating && totalItems === 0 && (
           <div className="rounded-3xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 p-12 text-center space-y-5 bg-white dark:bg-zinc-900/50">
             <div className="w-16 h-16 mx-auto rounded-3xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner">
               <Luggage className="w-8 h-8" />

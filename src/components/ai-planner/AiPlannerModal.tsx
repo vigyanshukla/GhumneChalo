@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TravelStyle, PlanningPreferences, GeneratedTripPlan } from '@/lib/ai/types';
 import { PlanPreview } from './PlanPreview';
+import { AiGenerationLoader } from '@/components/ui/AiGenerationLoader';
 
 interface AiPlannerModalProps {
   isOpen: boolean;
@@ -309,19 +310,19 @@ export function AiPlannerModal({
 
           {/* STEP 2: GENERATING */}
           {step === 'generating' && (
-            <div className="py-16 text-center space-y-4" data-testid="ai-planner-generating-step">
-              <div className="relative w-16 h-16 mx-auto">
-                <div className="w-16 h-16 rounded-full border-4 border-blue-200 dark:border-blue-900 border-t-blue-600 animate-spin" />
-                <Sparkles className="w-6 h-6 text-blue-600 absolute inset-0 m-auto" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                  Crafting Your Itinerary
-                </h3>
-                <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto animate-pulse">
-                  {generationProgress}
-                </p>
-              </div>
+            <div className="py-6" data-testid="ai-planner-generating-step">
+              <AiGenerationLoader
+                title={`Planning Your Trip to ${trip.destinationName || 'Paradise'}`}
+                subtitle="Our smart wander engine is analyzing weather, routes, and points of interest..."
+                currentProgress={generationProgress}
+                stages={[
+                  'Analyzing destination vibe & climate forecast...',
+                  'Mapping optimal route timings & transport...',
+                  'Curating personalized sights, cafes & local gems...',
+                  'Balancing morning, afternoon & evening activities...',
+                  'Finalizing your customized smart itinerary...',
+                ]}
+              />
             </div>
           )}
 
