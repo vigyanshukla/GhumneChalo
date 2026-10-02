@@ -200,9 +200,11 @@ export interface CachedFetchOptions {
 }
 
 /**
- * Optimized fetch wrapper:
- * - Checks localStorage first (returns cached data instantly if valid).
- * - Deduplicates identical in-flight requests (only 1 HTTP request across components).
+ * Optimized fetch wrapper with true Stale-While-Revalidate (SWR):
+ * - Checks localStorage first: returns cached data instantly (0ms latency).
+ * - If stale, returns cached data immediately while revalidating in background.
+ * - Deduplicates identical in-flight requests.
+ * - Has an 8-second timeout so requests never freeze or hang the mobile UI.
  * - Updates localStorage once network response succeeds.
  */
 export async function cachedFetch<T = unknown>(
@@ -214,10 +216,16 @@ export async function cachedFetch<T = unknown>(
   const ttlMs = cacheOptions?.ttlMs ?? DEFAULT_TTL_MS;
   const force = cacheOptions?.forceRefresh ?? false;
 
-  // 1. Check local storage cache if not forcing refresh
+  // 1. Check local storage cache with SWR
   if (!force) {
     const cached = getStoredItem<T>(cacheKey);
-    if (cached && !cached.isStale) {
+    if (cached) {
+      if (!cached.isStale) {
+        return cached.data;
+      }
+      // Stale data present: return instantly to prevent UI hang,
+      // then trigger silent background revalidation
+      revalidateInBackground(url, options, cacheKey, ttlMs);
       return cached.data;
     }
   }
@@ -228,10 +236,21 @@ export async function cachedFetch<T = unknown>(
     return inFlightRequests.get(inFlightKey) as Promise<T>;
   }
 
-  // 3. Execute network fetch
+  // 3. Execute network fetch with 8-second timeout
   const fetchPromise = (async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
-      const res = await fetch(url, options);
+      const mergedSignal = options?.signal
+        ? anySignal([options.signal, controller.signal])
+        : controller.signal;
+
+      const res = await fetch(url, {
+        ...options,
+        signal: mergedSignal,
+      });
+
       if (!res.ok) {
         throw new Error(`Request failed with status ${res.status}`);
       }
@@ -243,12 +262,48 @@ export async function cachedFetch<T = unknown>(
       }
       return json as T;
     } finally {
+      clearTimeout(timeoutId);
       inFlightRequests.delete(inFlightKey);
     }
   })();
 
   inFlightRequests.set(inFlightKey, fetchPromise);
   return fetchPromise;
+}
+
+/**
+ * Revalidates a cache key silently in background without blocking caller.
+ */
+function revalidateInBackground(
+  url: string,
+  options: RequestInit | undefined,
+  cacheKey: string,
+  ttlMs: number
+): void {
+  const inFlightKey = `${options?.method || 'GET'}:${url}`;
+  if (inFlightRequests.has(inFlightKey)) return;
+
+  // Fire background fetch
+  cachedFetch(url, options, {
+    cacheKey,
+    ttlMs,
+    forceRefresh: true,
+  }).catch(() => {});
+}
+
+/**
+ * Combines multiple AbortSignals safely.
+ */
+function anySignal(signals: AbortSignal[]): AbortSignal {
+  const controller = new AbortController();
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort();
+      return controller.signal;
+    }
+    signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  return controller.signal;
 }
 
 /**

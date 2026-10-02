@@ -98,13 +98,22 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
     }
 
     if (sessionToken) {
+      // Fast cache hit
+      const cached = userCache.get(sessionToken);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.user;
+      }
+
       const jwtPayload = await verifySessionToken(sessionToken);
       if (jwtPayload) {
         const user = await prisma.user.findUnique({
           where: { id: jwtPayload.userId },
           select: { id: true, email: true, name: true, image: true },
         });
-        if (user) return user;
+        if (user) {
+          userCache.set(sessionToken, { user, expiresAt: Date.now() + 60000 });
+          return user;
+        }
       }
 
       // Fallback: check database sessions table
@@ -114,6 +123,7 @@ export async function getAuthenticatedUser(request?: Request): Promise<Authentic
       });
 
       if (dbSession && dbSession.expires > new Date()) {
+        userCache.set(sessionToken, { user: dbSession.user, expiresAt: Date.now() + 60000 });
         return dbSession.user;
       }
     }

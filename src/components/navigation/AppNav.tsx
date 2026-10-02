@@ -194,7 +194,7 @@ function DesktopNav({ profile, loadingProfile, onLogout }: AppNavProps) {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium active:scale-95 transition-all duration-75 ${
                   isActive(href)
                     ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 font-semibold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -244,49 +244,107 @@ function DesktopNav({ profile, loadingProfile, onLogout }: AppNavProps) {
 
 function MobileBottomNav() {
   const pathname = usePathname();
+  const [optimisticPath, setOptimisticPath] = useState<string | null>(null);
+
+  // Clear optimistic path once real route arrives
+  useEffect(() => {
+    setOptimisticPath(null);
+  }, [pathname]);
+
+  const currentPath = optimisticPath || pathname;
 
   const isActive = (href: string) => {
-    if (href === '/home') return pathname === '/home';
-    if (href === '/trips') return pathname === '/trips' || (pathname.startsWith('/trips/') && !pathname.startsWith('/trips/new'));
-    return pathname === href || pathname.startsWith(href + '/');
+    if (href === '/home') return currentPath === '/home';
+    if (href === '/trips') return currentPath === '/trips' || (currentPath.startsWith('/trips/') && !currentPath.startsWith('/trips/new'));
+    return currentPath === href || currentPath.startsWith(href + '/');
+  };
+
+  const handleTabClick = (href: string) => {
+    setOptimisticPath(href);
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(10);
+      } catch {}
+    }
   };
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 select-none"
       aria-label="Mobile navigation"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="flex items-center justify-around h-16 px-1">
         {/* Home */}
-        <Link href="/home" className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${isActive('/home') ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'}`} aria-label="Home">
+        <Link
+          href="/home"
+          onClick={() => handleTabClick('/home')}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full active:scale-90 active:opacity-75 transition-all duration-75 ${
+            isActive('/home')
+              ? 'text-blue-600 dark:text-blue-400 font-semibold'
+              : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+          }`}
+          aria-label="Home"
+        >
           <Home className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Home</span>
+          <span className="text-[10px]">Home</span>
         </Link>
 
         {/* Explore */}
-        <Link href="/explore" className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${isActive('/explore') ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'}`} aria-label="Explore">
+        <Link
+          href="/explore"
+          onClick={() => handleTabClick('/explore')}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full active:scale-90 active:opacity-75 transition-all duration-75 ${
+            isActive('/explore')
+              ? 'text-blue-600 dark:text-blue-400 font-semibold'
+              : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+          }`}
+          aria-label="Explore"
+        >
           <Map className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Explore</span>
+          <span className="text-[10px]">Explore</span>
         </Link>
 
         {/* New Trip — FAB center */}
-        <Link href="/trips/new" className="flex flex-col items-center justify-center flex-1 h-full -mt-2" aria-label="Create new trip">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+        <Link
+          href="/trips/new"
+          onClick={() => handleTabClick('/trips/new')}
+          className="flex flex-col items-center justify-center flex-1 h-full -mt-2 active:scale-90 transition-transform duration-75"
+          aria-label="Create new trip"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25 active:bg-blue-700">
             <Plus className="w-6 h-6 text-white" />
           </div>
         </Link>
 
         {/* Notifications */}
-        <Link href="/notifications" className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${isActive('/notifications') ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'}`} aria-label="Notifications">
+        <Link
+          href="/notifications"
+          onClick={() => handleTabClick('/notifications')}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full active:scale-90 active:opacity-75 transition-all duration-75 ${
+            isActive('/notifications')
+              ? 'text-blue-600 dark:text-blue-400 font-semibold'
+              : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+          }`}
+          aria-label="Notifications"
+        >
           <Bell className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Alerts</span>
+          <span className="text-[10px]">Alerts</span>
         </Link>
 
         {/* Profile */}
-        <Link href="/profile" className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${isActive('/profile') ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'}`} aria-label="My profile">
+        <Link
+          href="/profile"
+          onClick={() => handleTabClick('/profile')}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full active:scale-90 active:opacity-75 transition-all duration-75 ${
+            isActive('/profile')
+              ? 'text-blue-600 dark:text-blue-400 font-semibold'
+              : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+          }`}
+          aria-label="My profile"
+        >
           <User className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Me</span>
+          <span className="text-[10px]">Me</span>
         </Link>
       </div>
     </nav>

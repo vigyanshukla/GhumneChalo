@@ -41,6 +41,26 @@ body {
   min-width: 44px;
 }
 
+/* Eliminate 300ms mobile tap delay and unwanted grey tap highlight */
+html, body, button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Top progress bar animation */
+@keyframes gc-route-progress {
+  0% { transform: scaleX(0.08); }
+  25% { transform: scaleX(0.35); }
+  60% { transform: scaleX(0.70); }
+  85% { transform: scaleX(0.88); }
+  100% { transform: scaleX(0.96); }
+}
+
+.animate-gc-progress {
+  animation: gc-route-progress 2.5s cubic-bezier(0.1, 0.5, 0.1, 1) forwards;
+  transform-origin: left;
+}
+
 /* Prefers Reduced Motion for Vestibular & Motion Sensitivity */
 @media (prefers-reduced-motion: reduce) {
   *,

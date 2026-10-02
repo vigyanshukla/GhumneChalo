@@ -1,8 +1,8 @@
 // GhumneChalo Service Worker — Web Push, Background Notifications & PWA Offline Caching
-// Version: 1.2.0
+// Version: 1.3.0
 
-const CACHE_NAME = 'ghumnechalo-pwa-v1.2.0';
-const STATIC_CACHE_NAME = 'ghumnechalo-static-v1.2.0';
+const CACHE_NAME = 'ghumnechalo-pwa-v1.3.0';
+const STATIC_CACHE_NAME = 'ghumnechalo-static-v1.3.0';
 
 // Essential App Shell resources to precache
 const PRECACHE_ASSETS = [
@@ -154,24 +154,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. API Routes: Network First with no sensitive credential caching
+  // 3. API Routes: Network First with timeout protection so PWA never hangs
   if (url.pathname.startsWith('/api/')) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     event.respondWith(
-      fetch(request).catch(() => {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: {
-              code: 'NETWORK_OFFLINE',
-              message: 'You are offline. Live API calls are unavailable.',
-            },
-          }),
-          {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      })
+      fetch(request, { signal: controller.signal })
+        .then((res) => {
+          clearTimeout(timeoutId);
+          return res;
+        })
+        .catch(() => {
+          clearTimeout(timeoutId);
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: {
+                code: 'NETWORK_OFFLINE',
+                message: 'You are offline or the request timed out.',
+              },
+            }),
+            {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        })
     );
     return;
   }

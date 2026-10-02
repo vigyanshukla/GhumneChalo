@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PWARegistration } from "@/components/pwa/PWARegistration";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { RouteProgressBar } from "@/components/navigation/RouteProgressBar";
+import { Suspense } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -126,6 +128,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen min-w-[320px] flex flex-col font-sans" suppressHydrationWarning>
+        <Suspense fallback={null}>
+          <RouteProgressBar />
+        </Suspense>
         <ThemeProvider>
           {children}
           <PWARegistration />
