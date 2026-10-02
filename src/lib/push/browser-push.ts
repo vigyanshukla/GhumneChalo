@@ -110,10 +110,45 @@ export async function subscribeToPush(): Promise<{ success: boolean; error?: str
       }
     }
 
-    subscription = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: convertedKey,
-    });
+    let subscription: PushSubscription | null = null;
+    try {
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey,
+      });
+    } catch (primaryErr: unknown) {
+      console.warn('Initial pushManager.subscribe failed, updating SW and retrying:', primaryErr);
+      try {
+        await reg.update();
+        const staleSub = await reg.pushManager.getSubscription();
+        if (staleSub) {
+          await staleSub.unsubscribe().catch(() => {});
+        }
+        subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedKey,
+        });
+      } catch (retryErr: unknown) {
+        const rawMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
+        const isBrave = typeof navigator !== 'undefined' && Boolean((navigator as unknown as { brave?: { isBrave?: () => Promise<boolean> } }).brave);
+
+        if (rawMsg.toLowerCase().includes('push service error')) {
+          if (isBrave) {
+            throw new Error(
+              "Brave Browser push is disabled by default. Please open brave://settings/privacy, turn ON 'Use Google services for push messaging', and restart Brave."
+            );
+          }
+          throw new Error(
+            "Push Service Error: Google push messaging is blocked. Please check Windows Settings > System > Notifications to ensure your browser is allowed, or test in a non-incognito Chrome/Edge window."
+          );
+        }
+        throw retryErr;
+      }
+    }
+
+    if (!subscription) {
+      throw new Error('Failed to create push subscription on this device.');
+    }
 
     const subJson = subscription.toJSON();
     const endpoint = subJson.endpoint || subscription.endpoint || '';
