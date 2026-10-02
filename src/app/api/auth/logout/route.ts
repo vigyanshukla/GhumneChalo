@@ -1,9 +1,8 @@
 import { clearSessionCookie, ALL_AUTH_COOKIE_NAMES } from '@/lib/session';
-import { apiSuccess } from '@/lib/api-response';
-import { handleApiError } from '@/lib/api-error';
 import { clearUserCache } from '@/lib/auth-server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function POST() {
   try {
@@ -22,21 +21,27 @@ export async function POST() {
       }
     } catch {}
 
-    // 2. Clear NextAuth session if available
-    try {
-      const { signOut } = await import('@/lib/auth');
-      await signOut({ redirect: false }).catch(() => {});
-    } catch {}
-
-    // 3. Clear all server-side session cookies via cookieStore
+    // 2. Clear all server-side session cookies via cookieStore
     await clearSessionCookie();
 
-    // 4. Invalidate server-side in-memory user cache
+    // 3. Invalidate server-side in-memory user cache
     clearUserCache();
 
-    // 5. Construct response and explicitly attach Set-Cookie clearing headers to the response itself
-    const response = apiSuccess({ message: 'Logged out successfully' });
+    // 4. Construct response and attach Set-Cookie clearing headers and Clear-Site-Data
+    const response = NextResponse.json(
+      { success: true, data: { message: 'Logged out successfully' } },
+      {
+        status: 200,
+        headers: {
+          'Clear-Site-Data': '"cache", "cookies", "storage"',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
 
+    // 5. Expire every known auth cookie explicitly on the response
     for (const cookieName of ALL_AUTH_COOKIE_NAMES) {
       response.cookies.set(cookieName, '', {
         path: '/',
@@ -46,12 +51,41 @@ export async function POST() {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       });
-      response.cookies.delete(cookieName);
+      if (cookieName.startsWith('__Secure-') || cookieName.startsWith('__Host-')) {
+        response.cookies.set(cookieName, '', {
+          path: '/',
+          maxAge: 0,
+          expires: new Date(0),
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+        });
+      }
     }
 
     return response;
   } catch (error) {
-    return handleApiError(error);
+    console.error('[Logout Route Error]:', error);
+    const fallbackResponse = NextResponse.json(
+      { success: true, data: { message: 'Logged out successfully' } },
+      {
+        status: 200,
+        headers: {
+          'Clear-Site-Data': '"cache", "cookies", "storage"',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
+    for (const cookieName of ALL_AUTH_COOKIE_NAMES) {
+      fallbackResponse.cookies.set(cookieName, '', {
+        path: '/',
+        maxAge: 0,
+        expires: new Date(0),
+        httpOnly: true,
+        sameSite: 'lax',
+      });
+    }
+    return fallbackResponse;
   }
 }
 

@@ -163,34 +163,36 @@ export function removeStoredItem(key: string): void {
 }
 
 /**
- * Clear all GhumneChalo application cache from localStorage and IndexedDB (e.g. on logout).
- * Also clears in-memory tab cache.
+ * Clear all application cache from localStorage, sessionStorage, and IndexedDB (e.g. on logout).
+ * Also clears in-memory tab cache and CacheStorage.
  */
 export function clearAllStoredCache(): void {
   if (typeof window === 'undefined') return;
 
-  // 1. Clear localStorage
+  // 1. Clear all localStorage
   try {
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (
-        k &&
-        (k.startsWith('gc_cache_') ||
-          k.startsWith('gc_guest_') ||
-          k.startsWith('ghumnechalo_cache_'))
-      ) {
-        keysToRemove.push(k);
-      }
-    }
-    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    localStorage.clear();
   } catch {}
 
-  // 2. Clear in-memory tab cache (prevents cross-user data leakage in same session)
+  // 2. Clear all sessionStorage
+  try {
+    sessionStorage.clear();
+  } catch {}
+
+  // 3. Clear in-memory tab cache
   clearMemoryTabCache();
 
-  // 3. Also purge IndexedDB to prevent cross-user data leakage
+  // 4. Purge IndexedDB
   clearAllOfflineStorage().catch(() => {});
+
+  // 5. Purge CacheStorage (PWA / Service Worker)
+  try {
+    if ('caches' in window) {
+      window.caches.keys().then((keys) => {
+        keys.forEach((key) => window.caches.delete(key));
+      }).catch(() => {});
+    }
+  } catch {}
 }
 
 export interface CachedFetchOptions {

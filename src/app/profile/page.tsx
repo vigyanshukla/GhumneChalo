@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { AppNav } from '@/components/navigation/AppNav';
 import { CACHE_KEYS, getStoredItem, setStoredItem, cachedFetch, clearAllStoredCache } from '@/lib/cache/client-cache';
+import { performLogout } from '@/lib/auth-client';
 
 interface UserProfile {
   id: string;
@@ -162,11 +163,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {}
-    clearAllStoredCache();
-    window.location.href = '/login?logged_out=1';
+    await performLogout();
   };
 
   if (loading) {

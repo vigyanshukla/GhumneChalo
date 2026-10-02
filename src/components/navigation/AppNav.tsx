@@ -29,6 +29,7 @@ import {
   prefetchCoreData,
 } from '@/lib/cache/client-cache';
 import { clearUserOfflineStorage } from '@/lib/offline/offline-storage';
+import { performLogout } from '@/lib/auth-client';
 
 interface UserProfile {
   name: string | null;
@@ -406,29 +407,7 @@ export function AppNav() {
   }, []);
 
   const handleLogout = async () => {
-    // Get current userId for targeted IndexedDB cleanup before clearing profile cache
-    let userId: string | undefined;
-    try {
-      const profileCache = getStoredItem<{ success: boolean; data: { id?: string } }>(CACHE_KEYS.PROFILE);
-      userId = profileCache?.data?.data?.id;
-    } catch {}
-
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch {}
-
-    // Clear all client-side caches and in-memory state
-    clearAllStoredCache();
-
-    // Targeted user IndexedDB cleanup (faster than clearing all)
-    if (userId) {
-      clearUserOfflineStorage(userId).catch(() => {});
-    }
-
-    // Use hard navigation to force full heap clearing — prevents stale React state
-    // from persisting across account switches
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = '/login?logged_out=1';
+    await performLogout();
   };
 
   return (
