@@ -12,6 +12,10 @@ export interface AuthenticatedUser {
 }
 
 const userCache = new Map<string, { user: AuthenticatedUser; expiresAt: number }>();
+ 
+export function clearUserCache(): void {
+   userCache.clear();
+ }
 
 /**
  * Extracts and verifies the authenticated user from server session or request headers.

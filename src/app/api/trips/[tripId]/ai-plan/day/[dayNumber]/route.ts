@@ -5,6 +5,8 @@ import { handleApiError } from '@/lib/api-error';
 import { idSchema } from '@/lib/validation';
 import { regenerateDayRequestSchema, regenerateAiTripDay } from '@/lib/ai';
 
+export const maxDuration = 60;
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ tripId: string; dayNumber: string }> }

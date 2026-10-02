@@ -379,6 +379,49 @@ describe('Phase 8 — Gemini AI Travel Planner', () => {
       }
     });
 
+    it('TC-8.12c: Long warnings, recommendations, and suggestions (>300 chars) are handled resiliently without throwing', () => {
+      const longWarning = 'A'.repeat(450); // Previously failed with too_big <=300
+      const veryLongRecommendation = 'B'.repeat(1200); // Exceeds 1000, should be sliced
+      const structuredWarningObject = { warning: 'Monsoon flash flood alert along mountain ghats' };
+
+      const planWithLongStrings = {
+        summary: 'A curated overview for our exciting trip.',
+        destination: 'Goa',
+        tripDurationDays: 1,
+        days: [
+          {
+            dayNumber: 1,
+            date: '2026-11-10',
+            title: 'Arrival Day',
+            activities: [
+              {
+                name: 'Beach Walk',
+                startTime: '10:00',
+                endTime: '12:00',
+                estimatedCost: '500 INR', // Coerced from string
+              },
+            ],
+          },
+        ],
+        warnings: [longWarning, structuredWarningObject],
+        recommendations: [veryLongRecommendation],
+        transportationSuggestions: ['Take the local ferry across the river.'],
+        weatherConsiderations: ['Pleasant coastal humidity with sunny skies.'],
+      };
+
+      const parsed = generatedTripPlanSchema.safeParse(planWithLongStrings);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        // Long warning (>300 chars) was retained without error
+        expect(parsed.data.warnings[0].length).toBe(450);
+        expect(parsed.data.warnings[1]).toBe('Monsoon flash flood alert along mountain ghats');
+        // Very long recommendation (>1000 chars) was safely capped at 1000 without crashing
+        expect(parsed.data.recommendations[0].length).toBe(1000);
+        // Cost string was safely coerced to number
+        expect(parsed.data.days[0].activities[0].estimatedCost).toBe(500);
+      }
+    });
+
     it('TC-8.13: Invalid generated date is rejected', () => {
       const invalidDay = {
         dayNumber: 1,

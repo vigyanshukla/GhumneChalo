@@ -84,6 +84,51 @@ function normalizeTimeString(raw: unknown, defaultTime: string): string {
   return defaultTime;
 }
 
+export function normalizeEstimatedCost(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  if (typeof raw === 'number') return isNaN(raw) ? null : Math.max(0, Math.min(raw, 10000000));
+  if (typeof raw === 'string') {
+    const cleaned = raw.replace(/[^0-9.]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : Math.max(0, Math.min(num, 10000000));
+  }
+  return null;
+}
+
+export function normalizeStringArray(raw: unknown, maxItemLength = 1000): string[] {
+  if (!Array.isArray(raw)) {
+    if (typeof raw === 'string' && raw.trim().length > 0) {
+      return [raw.trim().slice(0, maxItemLength)];
+    }
+    return [];
+  }
+  return raw
+    .map((item) => {
+      if (typeof item === 'string') return item.trim();
+      if (item && typeof item === 'object') {
+        const textVal =
+          (item as Record<string, unknown>).warning ||
+          (item as Record<string, unknown>).recommendation ||
+          (item as Record<string, unknown>).suggestion ||
+          (item as Record<string, unknown>).tip ||
+          (item as Record<string, unknown>).text ||
+          (item as Record<string, unknown>).message ||
+          (item as Record<string, unknown>).description ||
+          JSON.stringify(item);
+        return String(textVal).trim();
+      }
+      return String(item ?? '').trim();
+    })
+    .filter((s) => s.length > 0)
+    .map((s) => (s.length > maxItemLength ? s.slice(0, maxItemLength) : s));
+}
+
+export const resilientStringArraySchema = (maxItemLength = 1000) =>
+  z.preprocess(
+    (val) => normalizeStringArray(val, maxItemLength),
+    z.array(z.string().trim().max(maxItemLength))
+  ).default([]);
+
 export const travelStyleSchema = z.enum(['relaxed', 'moderate', 'fast-paced', 'luxury', 'budget']);
 
 export const planningPreferencesSchema = z.object({
@@ -97,8 +142,14 @@ export const planningPreferencesSchema = z.object({
 
 export const generatedActivitySchema = z.object({
   id: z.string().optional().default(() => `act-${Math.random().toString(36).substring(2, 9)}`),
-  name: z.string().trim().min(1, 'Activity name is required').max(150),
-  description: z.string().trim().default(''),
+  name: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 200) || 'Activity' : 'Activity'),
+    z.string().trim().min(1, 'Activity name is required').max(200)
+  ),
+  description: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 2000) : ''),
+    z.string().trim().default('')
+  ),
   category: activityCategorySchema.default('sightseeing'),
   startTime: z.preprocess(
     (val) => normalizeTimeString(val, '10:00'),
@@ -108,11 +159,20 @@ export const generatedActivitySchema = z.object({
     (val) => normalizeTimeString(val, '12:00'),
     z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
   ).default('12:00'),
-  durationMinutes: z.coerce.number().int().min(15).max(720).default(120),
-  estimatedCost: z.number().min(0).max(1000000).optional().nullable().default(null),
+  durationMinutes: z.preprocess((val) => {
+    const n = Number(val);
+    return isNaN(n) ? 120 : Math.max(15, Math.min(n, 720));
+  }, z.number().int()).default(120),
+  estimatedCost: z.preprocess(normalizeEstimatedCost, z.number().min(0).max(10000000).optional().nullable()).default(null),
   priority: activityPrioritySchema.default('recommended'),
-  reasoning: z.string().trim().default('Curated highlight'),
-  locationHint: z.string().trim().max(100).optional(),
+  reasoning: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 1000) : 'Curated highlight'),
+    z.string().trim().default('Curated highlight')
+  ),
+  locationHint: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 200) : undefined),
+    z.string().trim().max(200).optional()
+  ),
   placeId: z.string().trim().max(255).optional().nullable(),
   latitude: z.number().nullable().optional().default(null),
   longitude: z.number().nullable().optional().default(null),
@@ -127,29 +187,47 @@ export const generatedMealSchema = z.object({
     if (/noon|mid|lunch|brunch/i.test(lower)) return 'lunch';
     return 'dinner';
   }, z.enum(['breakfast', 'lunch', 'dinner'])).default('dinner'),
-  suggestion: z.string().trim().min(1).max(200),
-  estimatedCost: z.number().min(0).max(100000).optional().nullable(),
+  suggestion: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 300) || 'Local dining specialty' : 'Local dining specialty'),
+    z.string().trim().min(1).max(300)
+  ),
+  estimatedCost: z.preprocess(normalizeEstimatedCost, z.number().min(0).max(10000000).optional().nullable()).default(null),
 });
 
 export const generatedDayPlanSchema = z.object({
   dayNumber: z.number().int().min(1),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
-  title: z.string().trim().min(1, 'Day title required').max(150),
-  theme: z.string().trim().max(100).optional(),
+  title: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 200) || 'Day Itinerary' : 'Day Itinerary'),
+    z.string().trim().min(1, 'Day title required').max(200)
+  ),
+  theme: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 200) : undefined),
+    z.string().trim().max(200).optional()
+  ),
   activities: z.array(generatedActivitySchema).default([]),
   meals: z.array(generatedMealSchema).optional().default([]),
-  notes: z.string().trim().max(1000).optional(),
+  notes: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 2000) : undefined),
+    z.string().trim().max(2000).optional()
+  ),
 });
 
 export const generatedTripPlanSchema = z.object({
-  summary: z.string().trim().min(1).max(1000),
-  destination: z.string().trim().min(1).max(150),
-  tripDurationDays: z.number().int().min(1).max(60),
+  summary: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 2000) || 'Custom AI curated trip plan.' : 'Custom AI curated trip plan.'),
+    z.string().trim().min(1).max(2000)
+  ).default('Custom AI curated trip plan.'),
+  destination: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim().slice(0, 200) || 'Destination' : 'Destination'),
+    z.string().trim().min(1).max(200)
+  ),
+  tripDurationDays: z.coerce.number().int().min(1).max(60),
   days: z.array(generatedDayPlanSchema).min(1, 'Itinerary must contain at least one day'),
-  recommendations: z.array(z.string().trim().max(300)).default([]),
-  transportationSuggestions: z.array(z.string().trim().max(300)).default([]),
-  weatherConsiderations: z.array(z.string().trim().max(300)).default([]),
-  warnings: z.array(z.string().trim().max(300)).default([]),
+  recommendations: resilientStringArraySchema(1000),
+  transportationSuggestions: resilientStringArraySchema(1000),
+  weatherConsiderations: resilientStringArraySchema(1000),
+  warnings: resilientStringArraySchema(1000),
   generatedAt: z.string().default(() => new Date().toISOString()),
   modelUsed: z.string().default('gemini-2.5-flash'),
   isVerified: z.boolean().default(true),

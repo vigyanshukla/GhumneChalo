@@ -455,8 +455,9 @@ export async function generateAiTripPlan(
       const host = region === 'global' ? 'aiplatform.googleapis.com' : `${region}-aiplatform.googleapis.com`;
       const url = `https://${host}/v1/projects/${projectId}/locations/${region}/publishers/google/models/${model}:generateContent`;
 
+      const timeoutMs = parseInt(process.env.VERTEX_TIMEOUT_MS || '90000', 10);
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 60000);
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
 
       const res = await fetch(url, {
         method: 'POST',
@@ -496,9 +497,12 @@ export async function generateAiTripPlan(
       }
     }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const isAbort = (err instanceof Error && err.name === 'AbortError') || String(err).toLowerCase().includes('aborted');
+    const msg = isAbort
+      ? 'Request timed out waiting for Google Vertex AI response (exceeded 90s). Please try again or plan fewer days.'
+      : err instanceof Error ? err.message : String(err);
     console.error('[Vertex AI Exception]:', msg);
-    throw new GeminiRuntimeError(`Google Vertex AI generation failed: ${msg}`, 502);
+    throw new GeminiRuntimeError(`Google Vertex AI generation failed: ${msg}`, isAbort ? 504 : 502);
   }
 
   // 3. Optional Developer API key branch
@@ -583,8 +587,9 @@ export async function regenerateAiDayPlan(
       const host = region === 'global' ? 'aiplatform.googleapis.com' : `${region}-aiplatform.googleapis.com`;
       const url = `https://${host}/v1/projects/${projectId}/locations/${region}/publishers/google/models/${model}:generateContent`;
 
+      const timeoutMs = parseInt(process.env.VERTEX_DAY_TIMEOUT_MS || '45000', 10);
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 30000);
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
 
       const res = await fetch(url, {
         method: 'POST',
@@ -622,9 +627,12 @@ export async function regenerateAiDayPlan(
       }
     }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const isAbort = (err instanceof Error && err.name === 'AbortError') || String(err).toLowerCase().includes('aborted');
+    const msg = isAbort
+      ? 'Request timed out waiting for Google Vertex AI day regeneration (exceeded 45s).'
+      : err instanceof Error ? err.message : String(err);
     console.error('[Vertex AI Exception]:', msg);
-    throw new GeminiRuntimeError(`Google Vertex AI day regeneration failed: ${msg}`, 502);
+    throw new GeminiRuntimeError(`Google Vertex AI day regeneration failed: ${msg}`, isAbort ? 504 : 502);
   }
 
   // 3. Optional Developer API key

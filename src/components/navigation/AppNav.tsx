@@ -428,7 +428,7 @@ export function AppNav() {
     // Use hard navigation to force full heap clearing — prevents stale React state
     // from persisting across account switches
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = '/';
+    window.location.href = '/login?logged_out=1';
   };
 
   return (

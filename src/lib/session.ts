@@ -70,19 +70,48 @@ export async function setSessionCookie(token: string): Promise<void> {
   }
 }
 
+export const ALL_AUTH_COOKIE_NAMES = [
+  SESSION_COOKIE_NAME,
+  'auth_session',
+  'next-auth.session-token',
+  '__Secure-next-auth.session-token',
+  'authjs.session-token',
+  '__Secure-authjs.session-token',
+  'next-auth.csrf-token',
+  '__Host-next-auth.csrf-token',
+  'authjs.csrf-token',
+  '__Host-authjs.csrf-token',
+  'next-auth.callback-url',
+  '__Secure-next-auth.callback-url',
+  'authjs.callback-url',
+  '__Secure-authjs.callback-url',
+  'next-auth.pkce.code_verifier',
+  '__Secure-next-auth.pkce.code_verifier',
+  'authjs.pkce.code_verifier',
+  '__Secure-authjs.pkce.code_verifier',
+] as const;
+
 /**
- * Clears the session cookie on logout.
+ * Clears all authentication session cookies on logout.
  */
 export async function clearSessionCookie(): Promise<void> {
   try {
     const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE_NAME, '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 0,
-    });
+    for (const name of ALL_AUTH_COOKIE_NAMES) {
+      try {
+        cookieStore.delete(name);
+      } catch {}
+      try {
+        cookieStore.set(name, '', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 0,
+          expires: new Date(0),
+        });
+      } catch {}
+    }
   } catch {
     // In standalone testing environments where Next requestAsyncStorage is not mounted
   }

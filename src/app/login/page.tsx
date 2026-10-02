@@ -36,7 +36,11 @@ function LoginForm() {
     };
     return errorMessages[urlError] || `Authentication error: ${urlError}`;
   });
-  const [success, setSuccess] = useState<string | null>(null);
+  const isLoggedOut = searchParams.get('logged_out') === '1';
+  const [success, setSuccess] = useState<string | null>(() => {
+    if (isLoggedOut) return 'You have been signed out successfully.';
+    return null;
+  });
 
   // 2FA state
   const [is2FaStep, setIs2FaStep] = useState(false);
