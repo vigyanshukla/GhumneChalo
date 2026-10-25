@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #ededed;
+  color-scheme: dark;
+}
+
+*, ::before, ::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+  position: relative;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent media / SVG blowout on small phone screens */
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+}
+
+/* WCAG 2.1 AA Focus Visibility */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* WCAG Touch Target Sizing (>= 44x44px for interactive elements on mobile) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Eliminate 300ms mobile tap delay and unwanted grey tap highlight */
+html, body, button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Top progress bar animation */
+@keyframes gc-route-progress {
+  0% { transform: scaleX(0.08); }
+  25% { transform: scaleX(0.35); }
+  60% { transform: scaleX(0.70); }
+  85% { transform: scaleX(0.88); }
+  100% { transform: scaleX(0.96); }
+}
+
+.animate-gc-progress {
+  animation: gc-route-progress 2.5s cubic-bezier(0.1, 0.5, 0.1, 1) forwards;
+  transform-origin: left;
+}
+
+/* Prefers Reduced Motion for Vestibular & Motion Sensitivity */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

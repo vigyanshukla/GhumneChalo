@@ -1,0 +1,468 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TripStatus {
+  DRAFT
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum ExpenseCategory {
+  ACCOMMODATION
+  FOOD
+  TRANSPORT
+  ACTIVITIES
+  SHOPPING
+  MISCELLANEOUS
+}
+
+enum TransportationType {
+  FLIGHT
+  TRAIN
+  BUS
+  CAR
+  FERRY
+  OTHER
+}
+
+enum NotificationType {
+  TRIP_REMINDER
+  ITINERARY_REMINDER
+  WEATHER_ALERT
+  BUDGET_ALERT
+  SYSTEM
+  TRANSPORT_REMINDER
+  ACHIEVEMENT_UNLOCKED
+  SECURITY_ALERT
+  TRIP_UPCOMING
+  ITINERARY_UPCOMING
+  TRANSPORT_DEPARTURE
+  TRANSPORT_ARRIVAL
+}
+
+enum ReminderStatus {
+  SCHEDULED
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum ReminderType {
+  TRIP_START
+  ITINERARY_ACTIVITY
+  TRANSPORT_DEPARTURE
+  TRANSPORT_ARRIVAL
+  WEATHER_ALERT
+  BUDGET_ALERT
+  CUSTOM
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  name                   String?
+  email                  String                  @unique
+  passwordHash           String?
+  image                  String?
+  emailVerified          DateTime?
+  twoFactorEnabled       Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  trips                  Trip[]
+  savedPlaces            SavedPlace[]
+  searchHistory          SearchHistory[]
+  notifications          Notification[]
+  notificationPreference NotificationPreference?
+  pushSubscriptions      PushSubscription[]
+  achievements           Achievement[]
+  reminders              Reminder[]
+  accounts               Account[]
+  sessions               Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model AuthSecurityCode {
+  id          String   @id @default(cuid())
+  userId      String?
+  email       String
+  type        String   // "EMAIL_VERIFICATION" | "TWO_FACTOR_LOGIN" | "TWO_FACTOR_SETUP"
+  hashedCode  String
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(5)
+  lastSentAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([email, type])
+  @@index([userId, type])
+  @@map("auth_security_codes")
+}
+
+model Trip {
+  id                 String             @id @default(cuid())
+  userId             String
+  title              String
+  destinationName    String
+  destinationPlaceId String?
+  latitude           Float?
+  longitude          Float?
+  startDate          DateTime
+  endDate            DateTime
+  totalBudget        Float?
+  currency           String             @default("INR")
+  status             TripStatus         @default(DRAFT)
+  isFavorite         Boolean            @default(false)
+  isArchived         Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itineraryDays      ItineraryDay[]
+  budget             Budget?
+  transportation     Transportation[]
+  weatherSnapshots   WeatherSnapshot[]
+  packingItems       PackingItem[]
+  reminders          Reminder[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, startDate])
+  @@index([userId, isFavorite])
+  @@map("trips")
+}
+
+model ItineraryDay {
+  id        String          @id @default(cuid())
+  tripId    String
+  dayNumber Int
+  date      DateTime
+  title     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  trip      Trip            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items     ItineraryItem[]
+  reminders Reminder[]
+
+  @@unique([tripId, dayNumber])
+  @@index([tripId])
+  @@map("itinerary_days")
+}
+
+model ItineraryItem {
+  id             String       @id @default(cuid())
+  itineraryDayId String
+  placeId        String?
+  name           String
+  latitude       Float?
+  longitude      Float?
+  startTime      String?
+  endTime        String?
+  notes          String?
+  order          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  itineraryDay   ItineraryDay @relation(fields: [itineraryDayId], references: [id], onDelete: Cascade)
+  reminders      Reminder[]
+
+  @@index([itineraryDayId])
+  @@index([itineraryDayId, order])
+  @@map("itinerary_items")
+}
+
+model Budget {
+  id          String    @id @default(cuid())
+  tripId      String    @unique
+  totalAmount Float     @default(0)
+  currency    String    @default("INR")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+
+  @@map("budgets")
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  budgetId    String
+  category    ExpenseCategory @default(MISCELLANEOUS)
+  description String
+  amount      Float
+  expenseDate DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  budget      Budget          @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@index([budgetId, category])
+  @@map("expenses")
+}
+
+model Transportation {
+  id            String             @id @default(cuid())
+  tripId        String
+  type          TransportationType @default(OTHER)
+  origin        String
+  destination   String
+  departureTime DateTime?
+  arrivalTime   DateTime?
+  cost          Float?
+  currency      String             @default("INR")
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  trip          Trip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  reminders     Reminder[]
+
+  @@index([tripId])
+  @@map("transportation")
+}
+
+model WeatherSnapshot {
+  id                       String   @id @default(cuid())
+  tripId                   String
+  date                     DateTime
+  latitude                 Float
+  longitude                Float
+  temperature              Float?
+  precipitationProbability Float?
+  weatherCode              Int?
+  fetchedAt                DateTime @default(now())
+
+  trip                     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([tripId, date])
+  @@map("weather_snapshots")
+}
+
+model SavedPlace {
+  id        String   @id @default(cuid())
+  userId    String
+  placeId   String
+  name      String
+  address   String?
+  latitude  Float?
+  longitude Float?
+  category  String?
+  savedAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId])
+  @@index([userId])
+  @@index([userId, savedAt])
+  @@map("saved_places")
+}
+
+model SearchHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  query       String
+  placeId     String?
+  placeName   String?
+  latitude    Float?
+  longitude   Float?
+  searchCount Int      @default(1)
+  searchedAt  DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, query])
+  @@index([userId])
+  @@index([userId, searchedAt])
+  @@index([userId, searchCount])
+  @@map("search_history")
+}
+
+model Notification {
+  id             String           @id @default(cuid())
+  userId         String
+  type           NotificationType @default(SYSTEM)
+  title          String
+  body           String
+  data           String?
+  actionUrl      String?
+  idempotencyKey String?
+  expiresAt      DateTime?
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId])
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  tripReminders           Boolean  @default(true)
+  itineraryReminders      Boolean  @default(true)
+  transportationReminders Boolean  @default(true)
+  weatherAlerts           Boolean  @default(true)
+  budgetAlerts            Boolean  @default(true)
+  achievementAlerts       Boolean  @default(true)
+  securityAlerts          Boolean  @default(true)
+  pushEnabled             Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  fcmToken  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model Achievement {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  progress  Int      @default(100)
+  earnedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("achievements")
+}
+
+model PackingItem {
+  id               String   @id @default(cuid())
+  tripId           String
+  name             String
+  category         String   // "CLOTHING" | "TOILETRIES" | "DOCUMENTS" | "ELECTRONICS" | "HEALTH" | "ESSENTIALS" | "WEATHER" | "ACTIVITIES"
+  quantity         Int      @default(1)
+  isPacked         Boolean  @default(false)
+  isCustom         Boolean  @default(false)
+  weatherRelevance String?  // "RAIN" | "COLD" | "HOT" | "GENERAL"
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  trip             Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([tripId, category])
+  @@index([tripId, isPacked])
+  @@map("packing_items")
+}
+
+model Reminder {
+  id               String         @id @default(cuid())
+  userId           String
+  tripId           String?
+  itineraryItemId  String?
+  itineraryDayId   String?
+  transportationId String?
+  type             ReminderType   @default(CUSTOM)
+  title            String
+  message          String
+  scheduledAt      DateTime
+  status           ReminderStatus @default(SCHEDULED)
+  deliveryState    String?        // PENDING, DELIVERED, FAILED
+  sentAt           DateTime?
+  failedReason     String?
+  metadata         String?        // JSON string for optional context
+  idempotencyKey   String?        // prevent duplicate reminders
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip             Trip?          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itineraryItem    ItineraryItem? @relation(fields: [itineraryItemId], references: [id], onDelete: SetNull)
+  itineraryDay     ItineraryDay?  @relation(fields: [itineraryDayId], references: [id], onDelete: SetNull)
+  transportation   Transportation? @relation(fields: [transportationId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId])
+  @@index([userId, status])
+  @@index([scheduledAt, status])
+  @@index([tripId])
+  @@index([itineraryItemId])
+  @@index([transportationId])
+  @@map("reminders")
+}
+
